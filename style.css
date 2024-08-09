@@ -1,0 +1,14 @@
+.reportview-container {
+  background: #f0f2f6;
+}
+.main {
+  background: #000000;
+  padding: 3rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.stButton > button {
+  background-color: #4caf50;
+  color: white;
+  font-weight: bold;
+}
