@@ -1,0 +1,7 @@
+template: prototype
+style: style/style.css
+data:
+  - center-based: data/center_based_cost.csv
+  - family-care: data/family_care_cost.csv
+cost-multipliers:
+  - config/cost_multipliers.yaml
