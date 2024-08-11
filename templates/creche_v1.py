@@ -2,16 +2,15 @@ import streamlit as st
 import pandas as pd
 
 
-def run(config: dict):
-    ### Config
-    # Set page config
-    st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
+# cache
+@st.cache_data
+def load_data(config: dict, dataset: str) -> pd.DataFrame:
+    data = pd.read_csv(config["data"][dataset])
+    return data
 
-    # Read CSS file
-    style_path = config["style"]
-    with open(style_path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+def get_user_input(config: dict):
+    st.write("To start, please provide the following information:")
     # Load Data
     family_care_path = config["data"]["family-care"]
     family_care_df = pd.read_csv(family_care_path)
@@ -28,29 +27,64 @@ def run(config: dict):
         states = center_based_df['State'].unique()
 
         user_state = st.selectbox(
-            "Select US State", states)  # Dropdown to select state
-
-        # Use the selected_state variable in further processing
-        st.write(user_state)
+            "I **live** in:", states)  # Dropdown to select state
 
     with col2:
-        # select price bracket
-        # add italic text
-        st.write(
-            "Compared with <i>your</i> State, do you expect your costs to be:",
-            unsafe_allow_html=True)
-        # price_bracket = st.sel("Select Price Bracket", 0, 5, 2)
+        cost = st.selectbox(
+            f"Compared with all of :blue[**{user_state}**], I expect my **cost** to be:",
+            ["High", "Average", "Low"],
+            index=1)
+        cost_to_key = {"High": "high", "Average": "mid", "Low": "low"}
+        cost_multiplier = cost_multipliers[cost_to_key[cost]]
 
-        cc1, cc2, cc3 = st.columns(3)  # Create 3 columns
+    with col3:
+        care_type = st.selectbox(
+            "The **type** of daycare I'm interested in is:",
+            ["Family Care", "Center Based"])
 
-        with cc1:
-            a = st.button("High")
-            st.write(a)
+        care_type_to_key = {
+            "Family Care": "family-care",
+            "Center Based": "center-based"
+        }
 
-        with cc2:
-            if st.button("Average"):
-                st.write("Button 2 clicked")
+    care_data = load_data(config, care_type_to_key[care_type])
+    return care_data, user_state, cost_multiplier
 
-        with cc3:
-            if st.button("Low"):
-                st.write("Button 3 clicked")
+
+def references():
+    # horizontal bar
+
+    with st.expander("References and Resources"):
+        st.markdown(
+            """
+        - [State Averages: Child Care Aware of America](https://www.childcareaware.org/)
+        - [Childcare Technical Assistance Network](https://childcareta.acf.hhs.gov/)
+        - [National Database of Child Care Financial Assistance Programs](https://childcareta.acf.hhs.gov/consumer-education)
+        - [Office of Child Care](https://www.acf.hhs.gov/occ)
+        - [Tax Credits for Child Care Expenses -](https://www.irs.gov/credits-deductions/individuals/child-and-dependent-care-credit)
+        """)
+
+
+def run(config: dict):
+    ### Config
+    # Set page config
+    st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
+    st.title("Childcare Cost Estimator")
+
+    st.write(
+        "Use this tool to estimate the total cost of child care in your area. This tool uses data, along with assumptions about child care duration and cost brackets, to provide an estimate of the total cost of child care in your area."
+    )
+
+    # Read CSS file
+    style_path = config["style"]
+    with open(style_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+    care_data, user_state, cost_multiplier = get_user_input(config)
+    state_data = care_data[care_data['State'] == user_state]
+    st.dataframe(care_data.loc[care_data['State'] == user_state])
+
+    # cost basics and totals
+
+    # cumulative plots assuming start and end ages
+    references()
