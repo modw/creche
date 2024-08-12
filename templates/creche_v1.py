@@ -152,6 +152,15 @@ def tuition_metrics(state_data, adjusted_tuition, user_state):
 
 
 def run(config: dict):
+    """
+    Run the Childcare Cost Estimator streamlit app.
+
+    Parameters:
+    - config (dict): A dictionary containing the configuration settings.
+
+    Returns:
+    - None
+    """
     ### Config
     # Set page config
     st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
