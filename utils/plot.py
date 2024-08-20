@@ -3,7 +3,18 @@ from plotly.subplots import make_subplots
 import numpy as np
 import pandas as pd
 
-COLOR_HIGHLIGHT = "rgba(65,40,200,1)"
+
+# dictionary of RGBA color options
+COLOR_DICT = {
+    "Vivid Blue": "rgba(0, 127, 255, 0.8)",
+    "Vibrant Purple": "rgba(128, 0, 255, 0.8)",
+    "Bright Teal": "rgba(0, 191, 191, 0.8)",
+    "Warm Orange": "rgba(255, 127, 0, 0.8)",
+    "Lime Green": "rgba(128, 255, 0, 0.8)",
+    "Modern Red": "#FF4B4B",
+}
+
+COLOR_HIGHLIGHT = COLOR_DICT["Modern Red"]
 
 
 def sum_lines_traces(
@@ -39,7 +50,7 @@ def sum_lines_traces(
                         x=d.index,
                         y=d[column],
                         mode="lines",
-                        line=dict(color=COLOR_HIGHLIGHT, width=2),
+                        line=dict(color=COLOR_HIGHLIGHT, width=3),
                         showlegend=False,
                         opacity=opacity,
                         hovertemplate=hover_template,
@@ -53,7 +64,7 @@ def sum_lines_traces(
                     x=data.index,
                     y=data[column],
                     mode="lines",
-                    line=dict(color="rgba(60,60,60,0.25)", width=2),
+                    line=dict(color="rgba(60,60,60,0.25)", width=1),
                     showlegend=False,
                     hovertemplate=hover_template,
                     name=column,
@@ -75,7 +86,7 @@ def sum_lines_traces(
             text=[f"${y_l:,.0f}", f"${y_r:,.0f}"],
             textposition="top center",
             textfont=dict(
-                size=16,
+                size=25,
                 color=COLOR_HIGHLIGHT,
                 weight=3,
                 shadow="0px 0px 3px white, 0 0 1px white",
@@ -88,11 +99,11 @@ def sum_lines_traces(
 
 def plot_trend(
     data,
-    xcol,
     columns_included,
     column_highlight,
     left,
     right,
+    xcol=None,
     marker_text=True,
 ):
     """
@@ -113,7 +124,8 @@ def plot_trend(
     # create a copy of data to avoid modifying the original
     data = data.copy()
     # make xcol the index
-    data.set_index(xcol, inplace=True)
+    if xcol:
+        data.set_index(xcol, inplace=True)
 
     # offset data to start at left
     data[columns_included] = (
@@ -138,10 +150,28 @@ def plot_trend(
     for trace in main_traces:
         fig.add_trace(trace, row=1, col=1)
 
+    # add intervals to ticks
+    xticks = np.concatenate([np.arange(0, 72, 10), np.array([left, right])])
+    # drop duplicates
+    xticks = np.unique(xticks).tolist()
+    # sort
+    xticks.sort()
+
+    xticklabels = [str(x) for x in xticks]
+    xticklabels[0] = "0<br><i>months</i>"
+    # make left and right bold
+    left_index = xticks.index(left)
+    right_index = xticks.index(right)
+    xticklabels[left_index] = f"<b>{left}</b>"
+    xticklabels[right_index] = f"<b>{right}</b>"
+    if (left - 1 in xticks) or (left + 1 in xticks):
+        xticklabels[left_index] = "<br>" + xticklabels[left_index]
+    if (right - 1 in xticks) or (right + 1 in xticks):
+        xticklabels[right_index] = "<br>" + xticklabels[right_index]
+
     # update layout
     fig.update_layout(
-        font=dict(size=14),
-        width=800,
+        # width=800,
         height=600,
         # ymin
         yaxis=dict(
@@ -159,35 +189,26 @@ def plot_trend(
             showticklabels=True,
             tickmode="array",
             ticklabelposition="inside top",
-            tickfont=dict(color="gray", size=15),
+            tickfont=dict(color="gray", size=18),
         ),
         xaxis=dict(
             showgrid=False,
             ticks="inside",
             range=[-10, 72],
-            tickvals=[0, 10, 20, 30, 40, 50, 60, 70],
-            ticktext=[
-                "0 <i>months</i>",
-                "10",
-                "20",
-                "30",
-                "40",
-                "50",
-                "60",
-                "70",
-            ],
+            tickvals=xticks,
+            ticktext=xticklabels,
             tickangle=0,
-            tickfont=dict(size=14),
+            tickfont=dict(size=18),
             showline=True,
             linewidth=1,
             linecolor="black",
         ),
         hovermode="x",
-        plot_bgcolor="white",
+        # plot_bgcolor="white",
         margin=dict(l=0, r=20, t=30, b=60),
     )
 
-    fig.show()
+    return fig
 
 
 def _vertical_traces(data, ycol_highlight, left, right):

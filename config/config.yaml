@@ -3,8 +3,16 @@ style: style/style.css
 data:
   center-based: data/center_based_cost.csv
   family-care: data/family_care_cost.csv
-cost-multipliers:
-  Very High: 1.6
-  High: 1.3
-  Average: 1
-  Low: 0.8
+parameters:
+  ages:
+    min-age: 0
+    max-age: 72
+    default-age-start: 6
+    default-age-end: 60
+    age-step: 1
+  default-multiplier: Average
+  cost-multipliers:
+    Very High: 1.6
+    High: 1.3
+    Average: 1
+    Low: 0.8

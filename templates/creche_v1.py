@@ -3,6 +3,7 @@ import streamlit_extras as stx
 import pandas as pd
 import numpy as np
 from utils.dateutils import months_to_str
+from utils.plot import plot_trend
 
 
 # cache
@@ -22,7 +23,7 @@ def get_user_input(config: dict):
     center_based_df = pd.read_csv(center_based_path)
 
     # Multipliers
-    cost_multipliers = config["cost-multipliers"]
+    cost_multipliers = config["parameters"]["cost-multipliers"]
 
     ### Dash Layout
     col1, col2, col3 = st.columns(3)
@@ -72,13 +73,13 @@ def references():
         )
 
 
-def get_daycare_duration():
+def get_daycare_duration(age_config):
 
     # Initialize the slider value in session state if it doesn't exist
     if "start" not in st.session_state:
-        st.session_state.start = 6
+        st.session_state.start = age_config["default-age-start"]
     if "end" not in st.session_state:
-        st.session_state.end = 6 * 12
+        st.session_state.end = age_config["default-age-end"]
 
     # duration write containers
     duration_write_container = st.empty()
@@ -99,10 +100,10 @@ def get_daycare_duration():
 
         start, end = st.slider(
             f"Time in daycare",
-            0,
-            6 * 12 + 6,
-            (6, 6 * 12),
-            step=1,
+            age_config["min-age"],
+            age_config["max-age"],
+            (age_config["default-age-start"], age_config["default-age-end"]),
+            step=age_config["age-step"],
             format="%d months",
             label_visibility="visible",
         )
@@ -118,7 +119,10 @@ def get_daycare_duration():
     return start, end
 
 
-def compute_monthly_cost_df(start, end, tuition_dict):
+@st.cache_data
+def compute_monthly_cost_df(
+    start, end, tuition_dict, age_config, default_multiplier
+):
 
     def month_to_cost(month):
         if month < 12:
@@ -128,8 +132,15 @@ def compute_monthly_cost_df(start, end, tuition_dict):
         else:
             return tuition_dict["4-Year-Old"]
 
-    cost_df = pd.DataFrame(index=np.arange(start, end + 1), columns=["Cost"])
-    cost_df["Cost"] = cost_df.index.map(month_to_cost)
+    cost_df = pd.DataFrame(
+        index=np.arange(
+            age_config["min-age"],
+            age_config["max-age"] + 1,
+            age_config["age-step"],
+        ),
+        columns=[default_multiplier],
+    )
+    cost_df[default_multiplier] = cost_df.index.map(month_to_cost)
     cost_df = (cost_df / 12).astype(int)
 
     return cost_df
@@ -151,6 +162,11 @@ def tuition_metrics(state_data, adjusted_tuition, user_state):
         )
 
 
+@st.cache_data
+def cumulative_cost(monthly_cost_df):
+    return monthly_cost_df.cumsum()
+
+
 def run(config: dict):
     """
     Run the Childcare Cost Estimator streamlit app.
@@ -161,7 +177,12 @@ def run(config: dict):
     Returns:
     - None
     """
-    ### Config
+    # Load parameters
+    cost_multiplier_dict = config["parameters"]["cost-multipliers"]
+    cost_multipliers = list(cost_multiplier_dict.keys())
+    default_multiplier = config["parameters"]["default-multiplier"]
+    age_config = config["parameters"]["ages"]
+
     # Set page config
     st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
     st.title("Childcare Cost Estimator")
@@ -178,43 +199,46 @@ def run(config: dict):
     # Get user input
 
     care_data, user_state, cost_multiplier = get_user_input(config)
+    # state_data is of the form:
     state_data = care_data.loc[user_state]
     # Adjusted tuition
     adjusted_tuition = (state_data * cost_multiplier).astype(int).to_dict()
 
     tuition_metrics(state_data, adjusted_tuition, user_state)
-    start, end = get_daycare_duration()
+    start, end = get_daycare_duration(age_config)
 
     # Get cost dataframe
-    monthly_cost_df = compute_monthly_cost_df(start, end, adjusted_tuition)
+    monthly_cost_df = compute_monthly_cost_df(
+        start, end, adjusted_tuition, age_config, default_multiplier
+    )
 
-    # Split into 2 columns
-    col1, col2 = st.columns([2, 1])
+    for bracket, multiplier in cost_multiplier_dict.items():
+        monthly_cost_df[bracket] = (
+            monthly_cost_df[default_multiplier] * multiplier
+        )
+
+    # Cumulative cost
+    cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
     # Plot the cumulative monthly cost in the first column
-    col1.write("The cumulative monthly cost of daycare is:")
-    import plotly.express as px
+    st.write("The cumulative monthly cost of daycare is:")
 
-    fig = px.area(monthly_cost_df.cumsum(), x=monthly_cost_df.index, y="Cost")
-    fig.update_traces(mode="lines", line_color="blue")
-    fig.update_traces(
-        fillgradient=dict(
-            type="vertical",
-            colorscale=[
-                (0.0, "rgba(0, 0, 255, 0)"),
-                (1.0, "rgba(0, 0, 100, 0.8)"),
-            ],
-        )
+    fig = plot_trend(
+        cumulative_cost_df,
+        cost_multipliers,
+        cost,
+        start,
+        end,
     )
-    # fig.update_traces(fillcolor="blue", fill="tonexty", opacity=0.2)
-    fig.update_layout(showlegend=False)
-    col1.plotly_chart(fig)
+    st.plotly_chart(fig)
 
     # Add a total cost card on the second column
-    total_cost = monthly_cost_df["Cost"].sum()
-    col2.metric(
+    total_cost = (
+        cumulative_cost_df.loc[end, cost] - cumulative_cost_df.loc[start, cost]
+    )
+    st.metric(
         f"Estimated total cost of daycare from {months_to_str(start)} to {months_to_str(end)}",
-        f"${total_cost:,}",
+        f"${total_cost:,.0f}",
     )
 
     # add horizontal line
