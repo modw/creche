@@ -220,11 +220,8 @@ def run(config: dict):
     # Cumulative cost
     cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
-    # Split into 2 columns
-    col1, col2 = st.columns([2, 1])
-
     # Plot the cumulative monthly cost in the first column
-    col1.write("The cumulative monthly cost of daycare is:")
+    st.write("The cumulative monthly cost of daycare is:")
 
     fig = plot_trend(
         cumulative_cost_df,
@@ -233,13 +230,13 @@ def run(config: dict):
         start,
         end,
     )
-    col1.plotly_chart(fig)
+    st.plotly_chart(fig)
 
     # Add a total cost card on the second column
     total_cost = (
         cumulative_cost_df.loc[end, cost] - cumulative_cost_df.loc[start, cost]
     )
-    col2.metric(
+    st.metric(
         f"Estimated total cost of daycare from {months_to_str(start)} to {months_to_str(end)}",
         f"${total_cost:,.0f}",
     )

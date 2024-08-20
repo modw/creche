@@ -160,12 +160,18 @@ def plot_trend(
     xticklabels = [str(x) for x in xticks]
     xticklabels[0] = "0<br><i>months</i>"
     # make left and right bold
-    xticklabels[xticks.index(left)] = f"<br><b>{left}</b>"
-    xticklabels[xticks.index(right)] = f"<br><b>{right}</b>"
+    left_index = xticks.index(left)
+    right_index = xticks.index(right)
+    xticklabels[left_index] = f"<b>{left}</b>"
+    xticklabels[right_index] = f"<b>{right}</b>"
+    if (left - 1 in xticks) or (left + 1 in xticks):
+        xticklabels[left_index] = "<br>" + xticklabels[left_index]
+    if (right - 1 in xticks) or (right + 1 in xticks):
+        xticklabels[right_index] = "<br>" + xticklabels[right_index]
 
     # update layout
     fig.update_layout(
-        width=800,
+        # width=800,
         height=600,
         # ymin
         yaxis=dict(
