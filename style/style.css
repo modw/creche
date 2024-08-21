@@ -1,14 +1,24 @@
-/* .reportview-container {
-  background: #f0f2f6;
+.st-emotion-cache-ocqkz7.e1f1d6gn5,
+[data-testid="stHorizontalBlock"] {
+  border: 1px solid #ddd;
+  box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
+  padding: 2em;
+  border-radius: 0.5em;
 }
-.main {
-  background: #4f28a9;
-  padding: 3rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+[data-testid="stMetricLabel"] p {
+  font-size: 18px;
+  font-weight: regular;
 }
-.stButton > button {
-  background-color: #4caf50;
-  color: white;
-  font-weight: bold;
-} */
+
+[data-testid="stMetricValue"] {
+  font-weight: regular;
+}
+
+.st-emotion-cache-0 e1f1d6gn0,
+[data-testid="stVerticalBlockBorderWrapper"]:not(:last-child) {
+  border: 1px solid #ddd;
+  box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
+  padding: 2em;
+  border-radius: 0.5em;
+}

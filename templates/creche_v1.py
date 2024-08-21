@@ -3,12 +3,24 @@ import pandas as pd
 import numpy as np
 from utils.dateutils import months_to_str
 from utils.plot import plot_trend
+from utils.html import color_text
+import tomllib
 
 # Constants
 CARE_TYPE_TO_KEY = {
     "Family Care": "family-care",
     "Center Based": "center-based",
 }
+
+
+with open(".streamlit/config.toml", "rb") as f:
+    THEME_COLORS = tomllib.load(f)["theme"]
+
+
+def ct(text: str, color: str = THEME_COLORS["primaryColor"]) -> str:
+    """Convenience function to color text. Defaults to primary color of streamlit
+    theme."""
+    return color_text(text, color)
 
 
 # Data loading
@@ -34,7 +46,7 @@ def get_user_state(states: list[str]) -> str:
     >>> get_user_state(states)
     'California'
     """
-    return st.selectbox("I **live** in:", states)
+    return st.selectbox("I :blue[**live**] in:", states)
 
 
 def get_cost_expectation(
@@ -53,7 +65,7 @@ def get_cost_expectation(
 
     """
     cost = st.selectbox(
-        f"Compared with all of :blue[**{user_state}**], I expect my :orange[**cost**] to be:",
+        f"Compared with all of :blue[**{user_state}**], I expect my :blue[**cost**] to be:",
         list(cost_multipliers.keys()),
         index=1,
     )
@@ -62,7 +74,7 @@ def get_cost_expectation(
 
 def get_care_type():
     return st.selectbox(
-        "The **type** of daycare I'm interested in is:",
+        "The :blue[**type**] of daycare I'm interested in is:",
         ["Family Care", "Center Based"],
     )
 
@@ -118,9 +130,11 @@ def update_duration_write_container(
     - None
 
     """
-    container.write(
+    container.markdown(
         f"I expect my child to be in daycare from \
-            **:blue[{months_to_str(start)}]** to **:red[{months_to_str(end)}]** of age."
+            **{ct(months_to_str(start))}** \
+                to **{ct(months_to_str(end))}** of age.",
+        unsafe_allow_html=True,
     )
 
 
@@ -145,25 +159,20 @@ def get_daycare_duration(age_config: dict) -> tuple[int, int]:
         duration_write_container, st.session_state.start, st.session_state.end
     )
 
-    with st.expander("Click here to change the duration of daycare"):
-        st.write(
-            "Use the slider below to adjust the duration of daycare for your child."
-        )
-        start, end = st.slider(
-            f"Time in daycare",
-            age_config["min-age"],
-            age_config["max-age"],
-            (age_config["default-age-start"], age_config["default-age-end"]),
-            step=age_config["age-step"],
-            format="%d months",
-            label_visibility="visible",
-        )
+    # with st.expander("Click here to change the duration of daycare"):
+    start, end = st.slider(
+        f"Time in daycare",
+        age_config["min-age"],
+        age_config["max-age"],
+        (age_config["default-age-start"], age_config["default-age-end"]),
+        step=age_config["age-step"],
+        format="%d months",
+        label_visibility="visible",
+    )
 
-        if start != st.session_state.start or end != st.session_state.end:
-            st.session_state.start, st.session_state.end = start, end
-            update_duration_write_container(
-                duration_write_container, start, end
-            )
+    if start != st.session_state.start or end != st.session_state.end:
+        st.session_state.start, st.session_state.end = start, end
+        update_duration_write_container(duration_write_container, start, end)
 
     return start, end
 
@@ -242,11 +251,12 @@ def display_tuition_metrics(
     Returns:
     None
     """
-    st.write(
-        f"We're assuming the :orange[**{cost}**] tuition bracket per age group in :blue[**{user_state}**] is:"
+    st.markdown(
+        f"We're assuming the **{ct(cost)}** tuition bracket per age group in **{ct(user_state)}** is:",
+        unsafe_allow_html=True,
     )
     age_groups = state_data.index.to_list()
-    cols = st.columns(len(age_groups) * 2)
+    cols = st.columns(len(age_groups))
     for col in cols[: len(age_groups)]:
         group = age_groups.pop(0)
         col.metric(group, f"${adjusted_tuition[group]:,}", None)
@@ -330,8 +340,11 @@ def run(config: dict):
     """
     st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
     st.title("Childcare Cost Estimator")
-    st.write(
-        "Use this tool to estimate the total cost of child care in your area. This tool uses data, along with assumptions about child care duration and cost brackets, to provide an estimate of the total cost of child care in your area."
+    st.markdown(
+        "Use this tool to estimate the total cost of child care in your area.\
+        This tool uses data, along with assumptions about child care duration and\
+             cost brackets, to provide an illustrative estimate.\
+                \n*Always do your own research before making financial decisions*."
     )
 
     # Load CSS
@@ -345,33 +358,37 @@ def run(config: dict):
 
     display_tuition_metrics(state_data, adjusted_tuition, user_state, cost)
 
-    start, end = get_daycare_duration(config["parameters"]["ages"])
+    st.write("#### Estimate over time")
+    with st.container():
+        start, end = get_daycare_duration(config["parameters"]["ages"])
 
-    # Calculate costs
-    monthly_cost_df = compute_monthly_cost_df(
-        start,
-        end,
-        adjusted_tuition,
-        config["parameters"]["ages"],
-        config["parameters"]["default-multiplier"],
-    )
-    for bracket, multiplier in config["parameters"]["cost-multipliers"].items():
-        monthly_cost_df[bracket] = (
-            monthly_cost_df[config["parameters"]["default-multiplier"]]
-            * multiplier
+        # Calculate costs
+        monthly_cost_df = compute_monthly_cost_df(
+            start,
+            end,
+            adjusted_tuition,
+            config["parameters"]["ages"],
+            config["parameters"]["default-multiplier"],
         )
+        for bracket, multiplier in config["parameters"][
+            "cost-multipliers"
+        ].items():
+            monthly_cost_df[bracket] = (
+                monthly_cost_df[config["parameters"]["default-multiplier"]]
+                * multiplier
+            )
 
-    cumulative_cost_df = cumulative_cost(monthly_cost_df)
+        cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
-    # Display results
-    display_cumulative_cost(
-        cumulative_cost_df,
-        list(config["parameters"]["cost-multipliers"].keys()),
-        cost,
-        start,
-        end,
-    )
-    display_total_cost(cumulative_cost_df, cost, start, end)
+        # Display results
+        display_cumulative_cost(
+            cumulative_cost_df,
+            list(config["parameters"]["cost-multipliers"].keys()),
+            cost,
+            start,
+            end,
+        )
+    # display_total_cost(cumulative_cost_df, cost, start, end)
 
     st.divider()
     display_references()

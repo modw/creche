@@ -80,10 +80,10 @@ def sum_lines_traces(
             x=[left, right],
             y=[y_l, y_r],
             mode="markers+text",
-            marker=dict(color=COLOR_HIGHLIGHT, size=6),
+            marker=dict(color=COLOR_HIGHLIGHT, size=12),
             showlegend=False,
             hoverinfo="skip",
-            text=[f"${y_l:,.0f}", f"${y_r:,.0f}"],
+            text=[f"${y_l:,.0f}", f"total: ${y_r:,.0f}"],
             textposition="top center",
             textfont=dict(
                 size=25,
@@ -194,7 +194,6 @@ def plot_trend(
         xaxis=dict(
             showgrid=False,
             ticks="inside",
-            range=[-10, 72],
             tickvals=xticks,
             ticktext=xticklabels,
             tickangle=0,
