@@ -2,19 +2,15 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 import pandas as pd
+import tomllib
 
 
-# dictionary of RGBA color options
-COLOR_DICT = {
-    "Vivid Blue": "rgba(0, 127, 255, 0.8)",
-    "Vibrant Purple": "rgba(128, 0, 255, 0.8)",
-    "Bright Teal": "rgba(0, 191, 191, 0.8)",
-    "Warm Orange": "rgba(255, 127, 0, 0.8)",
-    "Lime Green": "rgba(128, 255, 0, 0.8)",
-    "Modern Red": "#FF4B4B",
-}
+with open(".streamlit/config.toml", "rb") as f:
+    THEME_COLORS = tomllib.load(f)["theme"]
 
-COLOR_HIGHLIGHT = COLOR_DICT["Modern Red"]
+COLOR_HIGHLIGHT = THEME_COLORS["primaryColor"]
+COLOR_FADED = "rgba(60,60,60,0.25)"
+COLOR_SECONDARY = "#0af"
 
 
 def sum_lines_traces(
@@ -64,7 +60,7 @@ def sum_lines_traces(
                     x=data.index,
                     y=data[column],
                     mode="lines",
-                    line=dict(color="rgba(60,60,60,0.25)", width=1),
+                    line=dict(color=COLOR_FADED, width=2),
                     showlegend=False,
                     hovertemplate=hover_template,
                     name=column,
@@ -80,11 +76,11 @@ def sum_lines_traces(
             x=[left, right],
             y=[y_l, y_r],
             mode="markers+text",
-            marker=dict(color=COLOR_HIGHLIGHT, size=6),
+            marker=dict(color=COLOR_HIGHLIGHT, size=12),
             showlegend=False,
             hoverinfo="skip",
             text=[f"${y_l:,.0f}", f"${y_r:,.0f}"],
-            textposition="top center",
+            textposition="top left",
             textfont=dict(
                 size=25,
                 color=COLOR_HIGHLIGHT,
@@ -194,7 +190,6 @@ def plot_trend(
         xaxis=dict(
             showgrid=False,
             ticks="inside",
-            range=[-10, 72],
             tickvals=xticks,
             ticktext=xticklabels,
             tickangle=0,
@@ -202,6 +197,10 @@ def plot_trend(
             showline=True,
             linewidth=1,
             linecolor="black",
+        ),
+        hoverlabel=dict(
+            # bgcolor="white",
+            font_size=16,
         ),
         hovermode="x",
         # plot_bgcolor="white",
