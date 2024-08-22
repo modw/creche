@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import yaml
 from utils.dateutils import months_to_str
 from utils.plot import plot_trend
 from utils.html import color_text
@@ -324,7 +325,11 @@ def display_summary_card(
 
     with col2:
         st.metric(label="Avg. Monthly Cost", value=f"${avg_monthly_cost:,.0f}")
-        st.metric(label="Cost Bracket", value=cost_bracket)
+        st.metric(
+            label="Cost Bracket",
+            value=cost_bracket,
+            help="(Based on your expectations)",
+        )
         st.metric(label="Care Type", value=care_type)
 
 
@@ -374,6 +379,7 @@ def run(config: dict):
     )
 
     state_data = care_data.loc[user_state]
+    baseline_tuition = state_data.astype(int).to_dict()
     adjusted_tuition = (state_data * cost_multiplier).astype(int).to_dict()
 
     display_tuition_metrics(
@@ -382,12 +388,10 @@ def run(config: dict):
 
     # Calculate costs
     monthly_cost_df = compute_monthly_cost_df(
-        adjusted_tuition,
+        baseline_tuition,
         config["parameters"]["ages"],
         config["parameters"]["cost-multipliers"],
     )
-
-    st.table(monthly_cost_df.iloc[0])
 
     cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
@@ -399,23 +403,31 @@ def run(config: dict):
         display_cumulative_cost(
             cumulative_cost_df,
             list(config["parameters"]["cost-multipliers"].keys()),
-            cost,
+            cost_bracket,
             start,
             end,
         )
 
     display_summary_card(
-        total_cost=cumulative_cost_df.loc[end, cost]
-        - cumulative_cost_df.loc[start, cost],
-        avg_monthly_cost=monthly_cost_df.loc[start : end + 1, cost].mean(),
+        total_cost=cumulative_cost_df.loc[end, cost_bracket]
+        - cumulative_cost_df.loc[start, cost_bracket],
+        avg_monthly_cost=monthly_cost_df.loc[
+            start : end + 1, cost_bracket
+        ].mean(),
         duration_months=end - start,
         state=user_state,
-        cost_bracket=cost,
+        cost_bracket=cost_bracket,
         care_type=care_type,
     )
 
     st.divider()
     display_references()
+
+
+def load_config():
+    # Load configuration
+    with open("./config/config.yaml", "r") as config_file:
+        config = yaml.safe_load(config_file)
 
 
 if __name__ == "__main__":
