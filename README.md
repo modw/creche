@@ -9,5 +9,5 @@ This is the development repository for the creche project. Users can input their
 - [x] Add a plot showing the cumulative cost of childcare over the number of months in care
 - [ ] Use a bar chart to indicate the price per age group
 - [ ] Add the cost per month in a subplot under the cumulative cost plot
-- [ ] Add a summary card with information such as total cost, average cost per month, and average cost per year, and the number of months in care
+- [x] Add a summary card with information such as total cost, average cost per month, and average cost per year, and the number of months in care
 - [ ] Add information on tax credits and deductions for childcare
