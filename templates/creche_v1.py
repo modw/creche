@@ -60,16 +60,16 @@ def get_cost_expectation(
     - user_state (str): The user state for comparison.
 
     Returns:
-    - cost (str): The selected cost expectation.
+    - cost_bracket (str): The selected cost expectation.
     - cost_multiplier (float): The corresponding cost multiplier.
 
     """
-    cost = st.selectbox(
+    cost_bracket = st.selectbox(
         f"Compared with all of :blue[**{user_state}**], I expect my :blue[**cost**] to be:",
         list(cost_multipliers.keys()),
         index=1,
     )
-    return cost, cost_multipliers[cost]
+    return cost_bracket, cost_multipliers[cost_bracket]
 
 
 def get_care_type():
@@ -103,7 +103,7 @@ def get_user_input(config: dict) -> tuple[pd.DataFrame, str, float, str]:
         user_state = get_user_state(states)
 
     with col2:
-        cost, cost_multiplier = get_cost_expectation(
+        cost_bracket, cost_multiplier = get_cost_expectation(
             cost_multipliers, user_state
         )
 
@@ -111,13 +111,11 @@ def get_user_input(config: dict) -> tuple[pd.DataFrame, str, float, str]:
         care_type = get_care_type()
 
     care_data = load_data(config, CARE_TYPE_TO_KEY[care_type])
-    return care_data, user_state, cost_multiplier, cost
+    return care_data, user_state, cost_multiplier, cost_bracket, care_type
 
 
 # Daycare duration functions
-def update_duration_write_container(
-    container: st.container, start: int, end: int
-) -> None:
+def update_duration_write_container(container, start: int, end: int) -> None:
     """
     Update the duration write container with the selected start and end ages.
 
@@ -180,21 +178,17 @@ def get_daycare_duration(age_config: dict) -> tuple[int, int]:
 # Cost calculation functions
 @st.cache_data
 def compute_monthly_cost_df(
-    start: int,
-    end: int,
     tuition_dict: dict,
     age_config: dict,
-    default_multiplier: str,
+    cost_multipliers: dict,
 ) -> pd.DataFrame:
     """
     Compute the monthly cost DataFrame based on the given parameters.
 
     Args:
-        start (int): The starting month.
-        end (int): The ending month.
         tuition_dict (dict): A dictionary containing the tuition costs for different age groups.
         age_config (dict): A dictionary containing the age configuration.
-        default_multiplier (str): The default multiplier.
+        cost_multipliers (dict): A dictionary containing the cost multiplier per bracket.
 
     Returns:
         pd.DataFrame: The computed monthly cost DataFrame.
@@ -208,16 +202,26 @@ def compute_monthly_cost_df(
         else:
             return tuition_dict["4-Year-Old"]
 
-    cost_df = pd.DataFrame(
-        index=np.arange(
-            age_config["min-age"],
-            age_config["max-age"] + 1,
-            age_config["age-step"],
-        ),
-        columns=[default_multiplier],
+    months = np.arange(
+        age_config["min-age"],
+        age_config["max-age"] + 1,
+        age_config["age-step"],
     )
-    cost_df[default_multiplier] = cost_df.index.map(month_to_cost)
-    return (cost_df / 12).astype(int)
+
+    # create baseline month_to_cost array
+    monthly_cost_arr = np.array([month_to_cost(month) for month in months])
+
+    # iterate over cost multipliers and create a DataFrame
+    cost_df = pd.DataFrame(
+        {
+            bracket: monthly_cost_arr * multiplier
+            for bracket, multiplier in cost_multipliers.items()
+        }
+    )
+    # divide by 12 to get monthly cost
+    cost_df = (cost_df / 12).astype(int)
+
+    return cost_df
 
 
 @st.cache_data
@@ -287,28 +291,41 @@ def display_cumulative_cost(
     st.plotly_chart(fig)
 
 
-def display_total_cost(
-    cumulative_cost_df: pd.DataFrame, cost: str, start: int, end: int
-) -> None:
+def display_summary_card(
+    total_cost: float,
+    avg_monthly_cost: float,
+    duration_months: int,
+    state: str,
+    cost_bracket: str,
+    care_type: str,
+):
     """
-    Display the estimated total cost of daycare.
+    Display a summary card with key metrics.
 
     Parameters:
-    - cumulative_cost_df (pd.DataFrame): The DataFrame containing the cumulative cost data.
-    - cost (str): The specific cost bracket to display.
-    - start (int): The starting month.
-    - end (int): The ending month.
+    - total_cost (float): The total cost of child care.
+    - avg_monthly_cost (float): The average monthly cost of child care.
+    - duration_months (int): The duration of child care in months.
+    - state (str): The state of residence.
+    - cost_bracket (str): The cost bracket of child care.
+    - care_type (str): The type of child care.
 
     Returns:
     - None
     """
-    total_cost = (
-        cumulative_cost_df.loc[end, cost] - cumulative_cost_df.loc[start, cost]
-    )
-    st.metric(
-        f"Estimated total cost of daycare from {months_to_str(start)} to {months_to_str(end)}",
-        f"${total_cost:,.0f}",
-    )
+    st.markdown("## Summary")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric(label="Total Cost", value=f"${total_cost:,.0f}")
+        st.metric(label="Duration", value=f"{duration_months} months")
+        st.metric(label="State", value=state)
+
+    with col2:
+        st.metric(label="Avg. Monthly Cost", value=f"${avg_monthly_cost:,.0f}")
+        st.metric(label="Cost Bracket", value=cost_bracket)
+        st.metric(label="Care Type", value=care_type)
 
 
 def display_references() -> None:
@@ -352,33 +369,31 @@ def run(config: dict):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     # Get user input
-    care_data, user_state, cost_multiplier, cost = get_user_input(config)
+    care_data, user_state, cost_multiplier, cost_bracket, care_type = (
+        get_user_input(config)
+    )
+
     state_data = care_data.loc[user_state]
     adjusted_tuition = (state_data * cost_multiplier).astype(int).to_dict()
 
-    display_tuition_metrics(state_data, adjusted_tuition, user_state, cost)
+    display_tuition_metrics(
+        state_data, adjusted_tuition, user_state, cost_bracket
+    )
+
+    # Calculate costs
+    monthly_cost_df = compute_monthly_cost_df(
+        adjusted_tuition,
+        config["parameters"]["ages"],
+        config["parameters"]["cost-multipliers"],
+    )
+
+    st.table(monthly_cost_df.iloc[0])
+
+    cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
     st.write("#### Estimate over time")
     with st.container():
         start, end = get_daycare_duration(config["parameters"]["ages"])
-
-        # Calculate costs
-        monthly_cost_df = compute_monthly_cost_df(
-            start,
-            end,
-            adjusted_tuition,
-            config["parameters"]["ages"],
-            config["parameters"]["default-multiplier"],
-        )
-        for bracket, multiplier in config["parameters"][
-            "cost-multipliers"
-        ].items():
-            monthly_cost_df[bracket] = (
-                monthly_cost_df[config["parameters"]["default-multiplier"]]
-                * multiplier
-            )
-
-        cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
         # Display results
         display_cumulative_cost(
@@ -388,7 +403,16 @@ def run(config: dict):
             start,
             end,
         )
-    # display_total_cost(cumulative_cost_df, cost, start, end)
+
+    display_summary_card(
+        total_cost=cumulative_cost_df.loc[end, cost]
+        - cumulative_cost_df.loc[start, cost],
+        avg_monthly_cost=monthly_cost_df.loc[start : end + 1, cost].mean(),
+        duration_months=end - start,
+        state=user_state,
+        cost_bracket=cost,
+        care_type=care_type,
+    )
 
     st.divider()
     display_references()

@@ -10,7 +10,7 @@ parameters:
     default-age-start: 6
     default-age-end: 60
     age-step: 1
-  default-multiplier: Average
+  default-multiplier-bracket: Average
   cost-multipliers:
     Very High: 1.6
     High: 1.3
