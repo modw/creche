@@ -1,0 +1,11 @@
+{
+    "cSpell.words": [
+        "arange",
+        "astype",
+        "cumsum",
+        "dateutils",
+        "iloc",
+        "selectbox",
+        "streamlit"
+    ]
+}
