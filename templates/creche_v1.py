@@ -252,7 +252,7 @@ def display_tuition_metrics(
     None
     """
     st.markdown(
-        f"We're assuming the **{ct(cost)}** tuition bracket per age group in **{ct(user_state)}** is:",
+        f"We're assuming the **{ct(cost)}** tuition cost per age group in **{ct(user_state)}** is:",
         unsafe_allow_html=True,
     )
     age_groups = state_data.index.to_list()
