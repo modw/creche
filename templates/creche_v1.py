@@ -269,6 +269,7 @@ def display_tuition_metrics(
 
 def display_cumulative_cost(
     cumulative_cost_df: pd.DataFrame,
+    monthly_cost_df: pd.DataFrame,
     cost_multipliers: dict,
     cost: str,
     start: int,
@@ -287,8 +288,9 @@ def display_cumulative_cost(
     Returns:
         None
     """
-    st.write("The cumulative monthly cost of daycare is:")
-    fig = plot_trend(cumulative_cost_df, cost_multipliers, cost, start, end)
+    fig = plot_trend(
+        cumulative_cost_df, monthly_cost_df, cost_multipliers, cost, start, end
+    )
     st.plotly_chart(fig)
 
 
@@ -314,7 +316,7 @@ def display_summary_card(
     Returns:
     - None
     """
-    st.markdown("## Summary")
+    st.markdown("#### Summary")
 
     col1, col2 = st.columns(2)
 
@@ -374,17 +376,19 @@ def run(config: dict):
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     # Get user input
-    care_data, user_state, cost_multiplier, cost_bracket, care_type = (
-        get_user_input(config)
-    )
+    with st.container():
+        st.markdown("#### Input")
+        care_data, user_state, cost_multiplier, cost_bracket, care_type = (
+            get_user_input(config)
+        )
 
     state_data = care_data.loc[user_state]
     baseline_tuition = state_data.astype(int).to_dict()
     adjusted_tuition = (state_data * cost_multiplier).astype(int).to_dict()
-
-    display_tuition_metrics(
-        state_data, adjusted_tuition, user_state, cost_bracket
-    )
+    with st.container():
+        display_tuition_metrics(
+            state_data, adjusted_tuition, user_state, cost_bracket
+        )
 
     # Calculate costs
     monthly_cost_df = compute_monthly_cost_df(
@@ -395,30 +399,32 @@ def run(config: dict):
 
     cumulative_cost_df = cumulative_cost(monthly_cost_df)
 
-    st.write("#### Estimate over time")
     with st.container():
+        st.write("#### Cost estimate over time")
         start, end = get_daycare_duration(config["parameters"]["ages"])
 
         # Display results
         display_cumulative_cost(
             cumulative_cost_df,
+            monthly_cost_df,
             list(config["parameters"]["cost-multipliers"].keys()),
             cost_bracket,
             start,
             end,
         )
 
-    display_summary_card(
-        total_cost=cumulative_cost_df.loc[end, cost_bracket]
-        - cumulative_cost_df.loc[start, cost_bracket],
-        avg_monthly_cost=monthly_cost_df.loc[
-            start : end + 1, cost_bracket
-        ].mean(),
-        duration_months=end - start,
-        state=user_state,
-        cost_bracket=cost_bracket,
-        care_type=care_type,
-    )
+    with st.container():
+        display_summary_card(
+            total_cost=cumulative_cost_df.loc[end, cost_bracket]
+            - cumulative_cost_df.loc[start, cost_bracket],
+            avg_monthly_cost=monthly_cost_df.loc[
+                start : end + 1, cost_bracket
+            ].mean(),
+            duration_months=end - start,
+            state=user_state,
+            cost_bracket=cost_bracket,
+            care_type=care_type,
+        )
 
     st.divider()
     display_references()

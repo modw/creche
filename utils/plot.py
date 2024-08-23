@@ -93,8 +93,90 @@ def sum_lines_traces(
     return traces
 
 
+def cost_per_month_traces(monthly_data, ycols, ycol_highlight, left, right):
+    """
+    Generate traces for a cost per month plot.
+
+    Parameters:
+    - monthly_data (pandas.DataFrame): The data containing the monthly values.
+    - ycols (list): The list of column names to plot.
+    - ycol_highlight (str): The column name to highlight.
+    - left (int): The left boundary index for starting a sum.
+    - right (int): The right boundary index for ending the sum.
+
+    Returns:
+    - traces (list): The list of plotly Scatter objects representing the traces.
+    """
+    hover_template = "<b>Cost per Month</b>: $%{y:,.0f}"
+
+    traces = []
+    for column in ycols:
+        if column == ycol_highlight:
+            # plot from 0 to shade_l
+            data_left = monthly_data.loc[monthly_data.index < left]
+            data_right = monthly_data.loc[monthly_data.index > right]
+            data_middle = monthly_data.loc[
+                (monthly_data.index >= left) & (monthly_data.index <= right)
+            ]
+            for d in [data_left, data_right, data_middle]:
+                opacity = 1 if d is data_middle else 0.2
+                traces.append(
+                    go.Scatter(
+                        x=d.index,
+                        y=d[column],
+                        mode="lines",
+                        line=dict(color=COLOR_HIGHLIGHT, width=3),
+                        showlegend=False,
+                        opacity=opacity,
+                        hovertemplate=hover_template,
+                        name=column,
+                    )
+                )
+
+        else:
+            traces.append(
+                go.Scatter(
+                    x=monthly_data.index,
+                    y=monthly_data[column],
+                    mode="lines",
+                    line=dict(color=COLOR_FADED, width=2),
+                    showlegend=False,
+                    hovertemplate=hover_template,
+                    name=column,
+                )
+            )
+
+    # add maker at left, right
+    y_l = monthly_data.loc[monthly_data.index == left, ycol_highlight].values[0]
+    y_r = monthly_data.loc[monthly_data.index == right, ycol_highlight].values[
+        0
+    ]
+
+    traces.append(
+        go.Scatter(
+            x=[left, right],
+            y=[y_l, y_r],
+            mode="markers+text",
+            marker=dict(color=COLOR_HIGHLIGHT, size=12),
+            showlegend=False,
+            hoverinfo="skip",
+            text=[f"${y_l:,.0f}", f"${y_r:,.0f}"],
+            textposition="top left",
+            textfont=dict(
+                size=25,
+                color=COLOR_HIGHLIGHT,
+                weight=3,
+                shadow="0px 0px 3px white, 0 0 1px white",
+            ),
+        )
+    )
+
+    return traces
+
+
 def plot_trend(
-    data,
+    cumulative_data,
+    monthly_data,
     columns_included,
     column_highlight,
     left,
@@ -118,7 +200,7 @@ def plot_trend(
         None
     """
     # create a copy of data to avoid modifying the original
-    data = data.copy()
+    data = cumulative_data.copy()
     # make xcol the index
     if xcol:
         data.set_index(xcol, inplace=True)
@@ -129,12 +211,13 @@ def plot_trend(
     )
     # subplots
     fig = make_subplots(
-        rows=1,
+        rows=2,
         cols=1,
         column_widths=[8],
-        row_heights=[8],
-        shared_yaxes=True,
+        row_heights=[8, 4],
+        # shared_xaxes=True,
         horizontal_spacing=0.02,
+        vertical_spacing=0.1,
     )
 
     # plot lines in the main plot
@@ -145,6 +228,15 @@ def plot_trend(
 
     for trace in main_traces:
         fig.add_trace(trace, row=1, col=1)
+
+    # add cost_per_month as subplot
+
+    monthly_traces = cost_per_month_traces(
+        monthly_data, columns_included, column_highlight, left, right
+    )
+
+    for trace in monthly_traces:
+        fig.add_trace(trace, row=2, col=1)
 
     # add intervals to ticks
     xticks = np.concatenate([np.arange(0, 72, 10), np.array([left, right])])
@@ -165,15 +257,24 @@ def plot_trend(
     if (right - 1 in xticks) or (right + 1 in xticks):
         xticklabels[right_index] = "<br>" + xticklabels[right_index]
 
-    # update layout
+    # general styling
     fig.update_layout(
-        # width=800,
-        height=600,
-        # ymin
-        yaxis=dict(
+        height=800,
+        hoverlabel=dict(
+            font_size=16,
+        ),
+        hovermode="x",
+        margin=dict(l=0, r=20, t=30, b=60),
+    )
+
+    # style subplots
+    for d, row in zip([data, monthly_data], [1, 2]):
+        fig.update_yaxes(
+            row=row,
+            col=1,
             range=[
-                data[columns_included].min().min(),
-                data[columns_included].max().max(),
+                d[columns_included].min().min(),
+                d[columns_included].max().max(),
             ],
             showgrid=True,
             tickformat="$~s",
@@ -186,8 +287,11 @@ def plot_trend(
             tickmode="array",
             ticklabelposition="inside top",
             tickfont=dict(color="gray", size=18),
-        ),
-        xaxis=dict(
+        )
+
+        fig.update_xaxes(
+            row=row,
+            col=1,
             showgrid=False,
             ticks="inside",
             tickvals=xticks,
@@ -197,14 +301,15 @@ def plot_trend(
             showline=True,
             linewidth=1,
             linecolor="black",
-        ),
-        hoverlabel=dict(
-            # bgcolor="white",
-            font_size=16,
-        ),
-        hovermode="x",
-        # plot_bgcolor="white",
-        margin=dict(l=0, r=20, t=30, b=60),
+        )
+
+    # axes titles
+    fig.update_yaxes(
+        title=dict(text="Cost per Month", font=dict(size=16)), row=2, col=1
+    )
+
+    fig.update_yaxes(
+        title=dict(text="Cumulative Cost", font=dict(size=16)), row=1, col=1
     )
 
     return fig
