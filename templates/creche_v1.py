@@ -433,6 +433,7 @@ def run(config: dict):
     """
     st.set_page_config(page_title="Child Care Cost Estimator", layout="wide")
     st.title("Childcare Cost Estimator")
+
     st.markdown(
         "Use this tool to estimate the total cost of child care in your area.\
         We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and\
@@ -497,6 +498,11 @@ def run(config: dict):
 
     with st.container():
         display_savings()
+
+    with st.container():
+        st.markdown(
+            "Made with ❤️ by Marcio - [**Buy me a Beer 🍺**](https://buymeacoffee.com/marciooo)"
+        )
 
     st.divider()
     display_references()
