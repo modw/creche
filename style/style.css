@@ -15,10 +15,17 @@
   font-weight: regular;
 }
 
+/* [data-testid="stMetric"] {
+} */
+
 .st-emotion-cache-0 e1f1d6gn0,
 [data-testid="stVerticalBlockBorderWrapper"]:not(:last-child) {
   border: 1px solid #ddd;
   box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
   padding: 2em;
   border-radius: 0.5em;
+}
+
+.savings-explainer {
+  padding-right: 2em;
 }

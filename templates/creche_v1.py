@@ -335,6 +335,71 @@ def display_summary_card(
         st.metric(label="Care Type", value=care_type)
 
 
+def display_savings():
+    """
+    Display the potential savings for the user.
+    """
+    l, r = st.columns([2, 1])
+    l.markdown("#### Ways to Save")
+    r.markdown("#### Annual Savings")
+
+    l, r = st.columns([2, 1])
+    l.markdown(
+        f"""
+    <div class="savings-explainer">
+
+    **Child and Dependent Care Tax Credit**
+    
+    The Child and Dependent Care Tax Credit allows you to claim 20% to 35% of up to \$3,000 \
+    in childcare expenses for one child or up to \$6,000 for two or more children. \
+    Depending on your income, the tax credit can save you between \$600 to \$2,100 per year.
+
+    [IRS: Am I eligible to claim the Child and Dependent Care Credit?](https://www.irs.gov/help/ita/am-i-eligible-to-claim-the-child-and-dependent-care-credit)
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    r.metric("$600 to", "$2,100")
+    l, r = st.columns([2, 1])
+    l.markdown(
+        f"""
+    <div class="savings-explainer">
+    
+    <b>Flexible Spending Accounts (FSAs)</b>
+    
+    A Dependent Care Flexible Spending Account (FSA) allows you to set aside\
+     pre-tax dollars to pay for eligible childcare expenses. You can contribute\
+     up to \$5,000 per year if you're single or married filing jointly, \
+     and up to \$2,500 if you're married filing separately.
+
+    [Investopedia: Dependent Care FSA](https://www.investopedia.com/articles/pf/09/dependent-care-fsa.asp)
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+    r.metric("$1,000 to", "$1,750")
+
+    l, r = st.columns([2, 1])
+    l.markdown(
+        f"""
+    <div class="savings-explainer">
+
+    **State-Specific Programs**
+
+    Many states offer childcare assistance programs, subsidies, or grants to\
+         low- and middle-income families to help offset the cost of daycare.\
+             Eligibility requirements and benefits vary by state.
+             <br>
+    [ChildCare.gov](https://www.childcare.gov/)<br>
+    [ChildCare Aware: State by State Resources](https://www.childcareaware.org/resources/state-by-state-resource-map/)
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+    r.metric("0% to", "100%")
+
+
 def display_references() -> None:
     """
     Display references and resources.
@@ -342,11 +407,15 @@ def display_references() -> None:
     with st.expander("References and Resources"):
         st.markdown(
             """
-        - [State Averages: Child Care Aware of America](https://www.childcareaware.org/)
+        - [State Averages: ChildCare Aware of America](https://www.childcareaware.org/)
         - [Childcare Technical Assistance Network](https://childcareta.acf.hhs.gov/)
         - [National Database of Child Care Financial Assistance Programs](https://childcareta.acf.hhs.gov/consumer-education)
         - [Office of Child Care](https://www.acf.hhs.gov/occ)
-        - [Tax Credits for Child Care Expenses -](https://www.irs.gov/credits-deductions/individuals/child-and-dependent-care-credit)
+        - [Tax Credits for Child Care Expenses](https://www.irs.gov/credits-deductions/individuals/child-and-dependent-care-credit)
+        - [IRS: Am I eligible to claim the Child and Dependent Care Credit?](https://www.irs.gov/help/ita/am-i-eligible-to-claim-the-child-and-dependent-care-credit)
+        - [Investopedia: Dependent Care FSA](https://www.investopedia.com/articles/pf/09/dependent-care-fsa.asp)
+        - [ChildCare.gov](https://www.childcare.gov/)
+        - [ChildCare Aware: State by State Resources](https://www.childcareaware.org/resources/state-by-state-resource-map/)
         """
         )
 
@@ -366,7 +435,7 @@ def run(config: dict):
     st.title("Childcare Cost Estimator")
     st.markdown(
         "Use this tool to estimate the total cost of child care in your area.\
-        This tool uses data, along with assumptions about child care duration and\
+        We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and\
              cost brackets, to provide an illustrative estimate.\
                 \n*Always do your own research before making financial decisions*."
     )
@@ -377,7 +446,7 @@ def run(config: dict):
 
     # Get user input
     with st.container():
-        st.markdown("#### Input")
+        st.markdown("##### Input")
         care_data, user_state, cost_multiplier, cost_bracket, care_type = (
             get_user_input(config)
         )
@@ -425,6 +494,9 @@ def run(config: dict):
             cost_bracket=cost_bracket,
             care_type=care_type,
         )
+
+    with st.container():
+        display_savings()
 
     st.divider()
     display_references()
