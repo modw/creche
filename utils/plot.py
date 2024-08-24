@@ -8,7 +8,16 @@ import tomllib
 with open(".streamlit/config.toml", "rb") as f:
     THEME_COLORS = tomllib.load(f)["theme"]
 
+
+# function to convert hex to rgba
+def hex_to_rgba(hex, alpha):
+    hex = hex.lstrip("#")
+    return f"rgba({int(hex[:2], 16)},{int(hex[2:4], 16)},{int(hex[4:], 16)},{alpha})"
+
+
 COLOR_HIGHLIGHT = THEME_COLORS["primaryColor"]
+COLOR_HIGHLIGHT_HIGH = hex_to_rgba(COLOR_HIGHLIGHT, 0.6)
+COLOR_HIGHLIGHT_MID = hex_to_rgba(COLOR_HIGHLIGHT, 0.4)
 COLOR_FADED = "rgba(60,60,60,0.25)"
 COLOR_SECONDARY = "#0af"
 
@@ -161,7 +170,7 @@ def cost_per_month_traces(monthly_data, ycols, ycol_highlight, left, right):
             showlegend=False,
             hoverinfo="skip",
             text=[f"${y_l:,.0f}", f"${y_r:,.0f}"],
-            textposition="top left",
+            textposition="top center",
             textfont=dict(
                 size=25,
                 color=COLOR_HIGHLIGHT,
@@ -172,6 +181,57 @@ def cost_per_month_traces(monthly_data, ycols, ycol_highlight, left, right):
     )
 
     return traces
+
+
+def plot_bars(adjusted_tuition_dict: dict, age_group: str):
+    """
+    Plot a bar chart of the adjusted tuition values.
+
+    Args:
+        adjusted_tuition_dict (dict): The dictionary of adjusted tuition values.
+
+    Returns:
+        fig (plotly.graph_objects.Figure): The plotly figure object.
+    """
+    # list of colors
+    colors = [
+        COLOR_HIGHLIGHT_HIGH if key == age_group else COLOR_HIGHLIGHT_MID
+        for key in adjusted_tuition_dict.keys()
+    ]
+
+    # side by side bar chart
+    fig = go.Figure()
+    for i, (key, value) in enumerate(adjusted_tuition_dict.items()):
+        fig.add_trace(
+            go.Bar(
+                x=[key],
+                y=[value],
+                name=key,
+                marker_color=colors[i],
+                hoverinfo="skip",
+                # bar width
+                width=0.9,
+            )
+        )
+
+    # hide everything except the bars
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(l=0, r=0, t=0, b=0),
+        hovermode="closest",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        # no labels
+        xaxis=dict(showticklabels=False),
+        yaxis=dict(showticklabels=False),
+        # no grid
+        xaxis_showgrid=False,
+        yaxis_showgrid=False,
+        # width and height
+        width=10,
+        height=80,
+    )
+    return fig
 
 
 def plot_trend(
@@ -218,6 +278,10 @@ def plot_trend(
         # shared_xaxes=True,
         horizontal_spacing=0.02,
         vertical_spacing=0.1,
+        subplot_titles=(
+            "Cumulative Cost",
+            "Cost per Month",
+        ),
     )
 
     # plot lines in the main plot
@@ -269,12 +333,15 @@ def plot_trend(
 
     # style subplots
     for d, row in zip([data, monthly_data], [1, 2]):
+        min_value = d[columns_included].min().min()
+        max_value = d[columns_included].max().max()
+        value_delta = max_value - min_value
         fig.update_yaxes(
             row=row,
             col=1,
             range=[
-                d[columns_included].min().min(),
-                d[columns_included].max().max(),
+                min_value - 0.05 * value_delta,
+                max_value + 0.2 * value_delta,
             ],
             showgrid=True,
             tickformat="$~s",
@@ -302,15 +369,6 @@ def plot_trend(
             linewidth=1,
             linecolor="black",
         )
-
-    # axes titles
-    fig.update_yaxes(
-        title=dict(text="Cost per Month", font=dict(size=16)), row=2, col=1
-    )
-
-    fig.update_yaxes(
-        title=dict(text="Cumulative Cost", font=dict(size=16)), row=1, col=1
-    )
 
     return fig
 
