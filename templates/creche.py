@@ -333,16 +333,21 @@ class ChildcareCostEstimator:
             )
 
     def run(self):
-        st.set_page_config(
-            page_title="Child Care Cost Estimator", layout="wide"
-        )
-        st.title("Childcare Cost Estimator")
+        st.set_page_config(page_title="ChildCare Calculator", layout="wide")
 
         st.markdown(
-            "Use this tool to estimate the total cost of child care in your area.\
-            We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and\
-                cost brackets, to provide an illustrative estimate.\
-                    \n*Always do your own research before making financial decisions*."
+            """
+            <div class="header">
+
+            # Childcare Calculator
+
+            Use this tool to estimate the total cost of child care in your area.
+            We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and
+                cost brackets, to provide an illustrative estimate.
+                    *Always do your own research before making financial decisions*.
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
         # Load CSS
