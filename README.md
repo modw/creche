@@ -11,3 +11,5 @@ This is the development repository for the creche project. Users can input their
 - [x] Add the cost per month in a subplot under the cumulative cost plot
 - [x] Add a summary card with information such as total cost, average cost per month, and average cost per year, and the number of months in care
 - [x] Add information on tax credits and deductions for childcare
+- [x] Allow for user input of their own childcare costs
+- [ ] Style the app with a theme

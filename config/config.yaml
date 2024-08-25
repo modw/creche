@@ -1,4 +1,4 @@
-template: creche_v1
+template: creche
 style: style/style.css
 data:
   center-based: data/center_based_cost.csv
@@ -16,3 +16,4 @@ parameters:
     High: 1.3
     Average: 1
     Low: 0.8
+  default_data_choice: "Use state averages"
