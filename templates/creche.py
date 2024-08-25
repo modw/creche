@@ -75,6 +75,7 @@ class ChildcareCostEstimator:
         )
 
     def get_user_input(self):
+        st.markdown("### Getting started")
         states = list(self.default_data["center-based"].keys())
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -111,7 +112,11 @@ class ChildcareCostEstimator:
         return cost_bracket, cost_multipliers[cost_bracket]
 
     def get_user_cost_data(self):
-        st.subheader("Enter your cost data")
+        st.markdown(
+            "### Enter your cost data",
+            help="If you want to use your own data. Otherwise, use the option\
+                 above to select state averages instead.",
+        )
         col1, col2, col3 = st.columns(3)
         with col1:
             infant_cost = st.number_input(
@@ -389,7 +394,6 @@ class ChildcareCostEstimator:
                 unsafe_allow_html=True,
             )
 
-        st.divider()
         self.display_references()
 
 
