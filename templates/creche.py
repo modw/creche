@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, Union
 from utils.dateutils import months_to_str
 from utils.plot import plot_trend
-from utils.html import color_text
+from utils.html import color_text, classy_container
 from main import AppConfig
 import tomllib
 
@@ -338,13 +338,17 @@ class ChildcareCostEstimator:
             )
 
     def run(self):
-        st.set_page_config(page_title="ChildCare Calculator", layout="wide")
+        st.set_page_config(
+            page_title="ChildCare Calculator",
+            layout="wide",
+            page_icon="🏠",
+        )
 
         st.markdown(
             """
             <div class="header">
 
-            # Childcare Calculator
+            # 🏠 ChildCare Calculator
 
             Use this tool to estimate the total cost of child care in your area.
             We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and
@@ -359,13 +363,10 @@ class ChildcareCostEstimator:
         with open(self.config.style) as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-        # Load CSS
-
-        # # Get user choice
         # with st.container():
-        #     self.get_user_choice()
+        #     self.get_user_input()
 
-        with st.container():
+        with classy_container():
             self.get_user_input()
 
         with st.container():
