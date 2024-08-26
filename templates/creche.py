@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import yaml
 from dataclasses import dataclass
-from typing import Dict, Union
+from typing import Union
 from utils.dateutils import months_to_str
 from utils.plot import plot_trend
 from utils.html import color_text

@@ -18,6 +18,8 @@
         "linecolor",
         "linewidth",
         "Marcio",
+        "numpy",
+        "plotly",
         "selectbox",
         "showgrid",
         "showlegend",
