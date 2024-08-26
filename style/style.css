@@ -1,3 +1,5 @@
+/* metric styling */
+
 [data-testid="stMetricLabel"] p {
   font-size: 18px;
   font-weight: regular;
@@ -7,6 +9,8 @@
   font-weight: regular;
 }
 
+/* containers */
+
 [data-testid="stVerticalBlockBorderWrapper"]:not(:last-child) {
   border: 1px solid #ffffff6d;
   box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
@@ -14,9 +18,13 @@
   border-radius: 0.5em;
 }
 
+/* savings box */
+
 .savings-explainer {
   padding-right: 2em;
 }
+
+/* signature / footer */
 
 .signature p {
   font-size: 16px;
@@ -34,6 +42,8 @@
   color: rgb(255, 157, 0);
 }
 
+/* header and title */
+
 .header {
   align-items: center;
   padding-left: 2em;
@@ -43,20 +53,28 @@
 .header h1 {
   font-weight: regular;
   font-family: "montserrat-medium", sans-serif;
-  background: linear-gradient(90deg, #00f260, #0575e6);
+  /* background: linear-gradient(90deg, #00f260, #0575e6); */
+  background-color: #fa8bff;
+  background-image: linear-gradient(
+    45deg,
+    #fa8bff 0%,
+    #2bd2ff 52%,
+    #2bff88 90%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.05em;
 }
 
+/* slider styling */
 [data-baseweb="slider"] {
-  color: #0575e6;
+  color: #a48bff;
 }
 
 [role="slider"] {
-  background-color: #0575e6;
+  background-color: #4b19e0;
 }
 
-div[data-baseweb="slider"] > div[data-testid="stTickBar"] {
-  color: #00f260;
+[data-testid="stThumbValue"] {
+  color: #134cf6;
 }

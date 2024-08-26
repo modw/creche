@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Dict, Union
 from utils.dateutils import months_to_str
 from utils.plot import plot_trend
-from utils.html import color_text, classy_container
+from utils.html import color_text
 from main import AppConfig
 import tomllib
 
@@ -78,8 +78,10 @@ class ChildcareCostEstimator:
         st.markdown("### Getting started")
         states = list(self.default_data["center-based"].keys())
         col1, col2, col3 = st.columns(3)
+        st.markdown("<div class='select-box'>", unsafe_allow_html=True)
         with col1:
             self.user_state = st.selectbox("I live in:", states)
+        st.markdown("</div>", unsafe_allow_html=True)
         with col2:
             self.care_type = st.selectbox(
                 "The type of daycare I'm interested in is:",
@@ -366,7 +368,7 @@ class ChildcareCostEstimator:
         # with st.container():
         #     self.get_user_input()
 
-        with classy_container():
+        with st.container():
             self.get_user_input()
 
         with st.container():
