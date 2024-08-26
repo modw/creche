@@ -1,7 +1,8 @@
-  pandas==2.2.2
-  plotly==5.23.0
-  streamlit==1.37.1 
-  yaml==6.0.2
-  streamlit-extras==0.4.6
-  numpy==1.26.4
-  toml==0.10.2
+importlib_metadata==7.2.1
+importlib_resources==6.4.2
+numpy==1.26.4
+pandas==2.2.2
+plotly==5.23.0
+PyYAML==6.0.2
+streamlit==1.37.1
+toml==0.10.2
