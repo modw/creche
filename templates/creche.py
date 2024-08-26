@@ -78,8 +78,10 @@ class ChildcareCostEstimator:
         st.markdown("### Getting started")
         states = list(self.default_data["center-based"].keys())
         col1, col2, col3 = st.columns(3)
+        st.markdown("<div class='select-box'>", unsafe_allow_html=True)
         with col1:
             self.user_state = st.selectbox("I live in:", states)
+        st.markdown("</div>", unsafe_allow_html=True)
         with col2:
             self.care_type = st.selectbox(
                 "The type of daycare I'm interested in is:",
@@ -338,13 +340,17 @@ class ChildcareCostEstimator:
             )
 
     def run(self):
-        st.set_page_config(page_title="ChildCare Calculator", layout="wide")
+        st.set_page_config(
+            page_title="ChildCare Calculator",
+            layout="wide",
+            page_icon="🏠",
+        )
 
         st.markdown(
             """
             <div class="header">
 
-            # Childcare Calculator
+            # 🏠 ChildCare Calculator
 
             Use this tool to estimate the total cost of child care in your area.
             We use state averages from [Child Care Aware](https://www.childcareaware.org/), along with assumptions about child care duration and
@@ -359,11 +365,8 @@ class ChildcareCostEstimator:
         with open(self.config.style) as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-        # Load CSS
-
-        # # Get user choice
         # with st.container():
-        #     self.get_user_choice()
+        #     self.get_user_input()
 
         with st.container():
             self.get_user_input()

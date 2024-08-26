@@ -1,10 +1,4 @@
-/* .st-emotion-cache-ocqkz7.e1f1d6gn5,
-[data-testid="stHorizontalBlock"] {
-  border: 1px solid #ddd;
-  box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
-  padding: 2em;
-  border-radius: 0.5em;
-} */
+/* metric styling */
 
 [data-testid="stMetricLabel"] p {
   font-size: 18px;
@@ -15,20 +9,22 @@
   font-weight: regular;
 }
 
-/* [data-testid="stMetric"] {
-} */
+/* containers */
 
-.st-emotion-cache-0 e1f1d6gn0,
 [data-testid="stVerticalBlockBorderWrapper"]:not(:last-child) {
-  border: 1px solid #ddd;
+  border: 1px solid #ffffff6d;
   box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
   padding: 2em;
   border-radius: 0.5em;
 }
 
+/* savings box */
+
 .savings-explainer {
   padding-right: 2em;
 }
+
+/* signature / footer */
 
 .signature p {
   font-size: 16px;
@@ -46,6 +42,8 @@
   color: rgb(255, 157, 0);
 }
 
+/* header and title */
+
 .header {
   align-items: center;
   padding-left: 2em;
@@ -54,6 +52,29 @@
 
 .header h1 {
   font-weight: regular;
-  font-family: Arial, Helvetica, sans-serif;
-  /* font-size: 60px; */
+  font-family: "montserrat-medium", sans-serif;
+  /* background: linear-gradient(90deg, #00f260, #0575e6); */
+  background-color: #fa8bff;
+  background-image: linear-gradient(
+    45deg,
+    #fa8bff 0%,
+    #2bd2ff 52%,
+    #2bff88 90%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.05em;
+}
+
+/* slider styling */
+[data-baseweb="slider"] {
+  color: #a48bff;
+}
+
+[role="slider"] {
+  background-color: #4b19e0;
+}
+
+[data-testid="stThumbValue"] {
+  color: #134cf6;
 }
