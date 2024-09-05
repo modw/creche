@@ -1,15 +1,20 @@
-# creche - A simple childcare cost estimation tool
-This is the development repository for the creche project. Users can input their state, type of group care, price bracket, and number of months in care. With that information and state average data, we provide an estimate of the total cost of childcare for the user.
+# creche - A Simple Childcare Cost Calculator
 
-## Planned Features and Improvements
-- [x] Add a dropdown for the user to select the state
-- [x] Add a dropdown for the user to select the type of group care
-- [x] Add a dropdown for the user to select the price bracket
-- [x] Use a slider for the user to select the number of months in care
-- [x] Add a plot showing the cumulative cost of childcare over the number of months in care
-- [x] Add the cost per month in a subplot under the cumulative cost plot
-- [x] Add a summary card with information such as total cost, average cost per month, and average cost per year, and the number of months in care
-- [x] Add information on tax credits and deductions for childcare
-- [x] Allow for user input of their own childcare costs
-- [ ] Style the app with a theme
-- [ ] Add option to compare user data with state averages
+### [ 🏠 creche.streamlit.app](https://creche.streamlit.app/)
+
+Creche is a web-based application designed to help parents estimate the total cost of childcare in their area. Using state averages from [Child Care Aware](https://www.childcareaware.org/) and user-provided data, Creche provides an illustrative estimate of childcare expenses over time.
+
+## Features
+
+- **State-Specific Cost Estimates**: Get cost estimates based on state averages.
+- **Customizable Inputs**: Adjust the cost expectations and daycare duration to fit your needs.
+- **Detailed Metrics**: View detailed tuition metrics and cumulative cost estimates.
+- **Savings Insights**: Get insights into potential savings and additional resources.
+
+## Usage
+
+1. **Select Your State**: Choose the state you live in from the dropdown menu.
+2. **Choose Care Type**: Select the type of daycare you are interested in (e.g., center-based, family care).
+3. **Set Cost Expectations**: Adjust your cost expectations compared to the state average.
+4. **Specify Daycare Duration**: Use the slider to specify the expected duration your child will be in daycare.
+5. **View Results**: The application will display detailed cost estimates, cumulative costs, and potential savings.
