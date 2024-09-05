@@ -8,37 +8,6 @@ from utils.plot import plot_trend
 from utils.html import color_text
 from main import AppConfig
 import tomllib
-import base64
-
-
-# sitemap.xml
-def serve_sitemap():
-    sitemap_content = """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-        <url>
-            <loc>https://creche.streamlit.app/</loc>
-            <lastmod>2024-09-04</lastmod>
-            <changefreq>monthly</changefreq>
-            <priority>1.0</priority>
-        </url>
-    </urlset>
-    """
-
-    b64 = base64.b64encode(sitemap_content.encode()).decode()
-    href = f'<a href="data:application/xml;base64,{b64}" download="sitemap.xml">Download Sitemap</a>'
-    st.markdown(href, unsafe_allow_html=True)
-
-
-# robots.txt
-def serve_robots_txt():
-    robots_content = """
-    User-agent: *
-    Allow: /
-    Sitemap: https://creche.streamlit.app/?sitemap
-    """
-    st.text(robots_content)
-
 
 # Constants
 CARE_TYPE_TO_KEY = {
@@ -429,8 +398,8 @@ class ChildcareCostEstimator:
 
         self.display_references()
 
-        if "sitemap" in st.experimental_get_query_params():
-            serve_sitemap()
 
-        if "robots.txt" in st.experimental_get_query_params():
-            serve_robots_txt()
+if __name__ == "__main__":
+    config = load_config()
+    app = ChildcareCostEstimator(config)
+    app.run()
