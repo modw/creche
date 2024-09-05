@@ -341,7 +341,7 @@ class ChildcareCostEstimator:
     def run(self):
         st.set_page_config(
             page_title="Childcare Cost Calculator: Plan Your Daycare Expenses | Creche",
-            layout="centered",
+            layout="wide",
             page_icon="🏠",
         )
 
